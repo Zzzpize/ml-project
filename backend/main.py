@@ -1,6 +1,5 @@
 import uvicorn
 
-from urllib import request
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.ml.inference import TicketPredictor
@@ -27,16 +26,12 @@ app.add_middleware(
 
 @app.post("/api/predict", response_model=TicketResponse)
 async def predict_ticket(ticket: TicketRequest) -> TicketResponse:
-    equipment, failure_point, serial_number = predictor.predict(
+    prediction_result = predictor.predict(
         ticket.subject,
         ticket.description
     )
 
-    return TicketResponse(
-        equipment=equipment,
-        failure_point=failure_point,
-        serial_number=serial_number
-    )
+    return TicketResponse(**prediction_result)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="localhost", port=8000)
