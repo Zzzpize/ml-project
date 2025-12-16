@@ -1,21 +1,20 @@
-import re
-from typing import Optional
+# backend/ml/extractor.py
 
+import re
 
 SERIAL_REGEXES = [
+    r"\b[A-Z0-9]{8,15}\b",
     r"\bSN[:\s\-]*([A-Z0-9\-]{5,})\b",
-    r"\bсерийн(?:ый|ого)?\s*номер[:\s\-]*([A-Z0-9\-]{5,})\b",
-    r"\b([A-Z]{2,5}\d{4,})\b"
+    r"\bS\/N[:\s\-]*([A-Z0-9\-]{5,})\b",
 ]
 
 
-def extract_serial_number(text: str) -> Optional[str]:
-    if not text:
-        return None
+def extract_serial_number(subject: str, description: str) -> str | None:
+    text = f"{subject} {description}".upper()
 
     for pattern in SERIAL_REGEXES:
-        match = re.search(pattern, text, flags=re.IGNORECASE)
+        match = re.search(pattern, text)
         if match:
-            return match.group(1)
+            return match.group(1) if match.groups() else match.group(0)
 
     return None

@@ -1,85 +1,81 @@
-import pickle
-from typing import Dict
+# backend/ml/inference.py
+
+import joblib
+from pathlib import Path
 
 from backend.ml.preprocessor import clean_text
 from backend.ml.extractor import extract_serial_number
 
-MODELS_DIR = "models"
-
-# пороги уверенности
-EQUIPMENT_THRESHOLD = 0.2
-FAILURE_THRESHOLD = 0.2
-
-# слова, при которых ML не имеет смысла
-UNKNOWN_KEYWORDS = [
-    "терминал",
-    "ingenico",
-    "эквайринг",
-    "pos",
-]
-
 
 class TicketPredictor:
     def __init__(self):
-        self._load_models()
+        project_root = Path(__file__).resolve().parents[2]
+        models_dir = project_root / "models"
 
-    def _load_models(self):
-        with open(f"{MODELS_DIR}/equipment_model.pkl", "rb") as f:
-            self.equipment_model = pickle.load(f)
+        # Equipment
+        self.equipment_vectorizer = joblib.load(
+            models_dir / "equipment_vectorizer.pkl"
+        )
+        self.equipment_model = joblib.load(
+            models_dir / "equipment_model.pkl"
+        )
 
-        with open(f"{MODELS_DIR}/equipment_vectorizer.pkl", "rb") as f:
-            self.equipment_vectorizer = pickle.load(f)
+        # Failure stage 1
+        self.failure_group_vectorizer = joblib.load(
+            models_dir / "failure_group_vectorizer.pkl"
+        )
+        self.failure_group_model = joblib.load(
+            models_dir / "failure_group_model.pkl"
+        )
 
-        with open(f"{MODELS_DIR}/failure_model.pkl", "rb") as f:
-            self.failure_model = pickle.load(f)
+        # Failure stage 2 (lazy-loaded)
+        self.failure_models = {}
+        self.failure_vectorizers = {}
 
-        with open(f"{MODELS_DIR}/failure_vectorizer.pkl", "rb") as f:
-            self.failure_vectorizer = pickle.load(f)
+        for path in models_dir.glob("failure_model_*.pkl"):
+            group = path.stem.replace("failure_model_", "")
+            self.failure_models[group] = joblib.load(path)
+            self.failure_vectorizers[group] = joblib.load(
+                models_dir / f"failure_vectorizer_{group}.pkl"
+            )
 
-    def _has_unknown_keywords(self, text: str) -> bool:
-        return any(word in text for word in UNKNOWN_KEYWORDS)
-
-    def _predict_with_confidence(self, model, vectorizer, text, threshold):
+    def _predict_with_confidence(self, model, vectorizer, text):
         X = vectorizer.transform([text])
-        probs = model.predict_proba(X)[0]
+        proba = model.predict_proba(X)[0]
+        idx = proba.argmax()
+        return model.classes_[idx], float(proba[idx])
 
-        max_prob = probs.max()
-        pred_class = model.classes_[probs.argmax()]
-
-        print(f"[CONFIDENCE] {pred_class}: {max_prob:.3f}")
-
-        if max_prob < threshold:
-            return "Не определено", max_prob
-
-        return pred_class, max_prob
-
-    def predict(self, subject: str, description: str) -> Dict:
+    def predict(self, subject: str, description: str) -> dict:
         raw_text = f"{subject} {description}"
-        clean = clean_text(raw_text)
+        text = clean_text(raw_text)
 
-        # --- fallback по ключевым словам ---
-        if self._has_unknown_keywords(clean):
-            equipment = "Не определено"
-            failure = "Не определено"
+        equipment, equipment_conf = self._predict_with_confidence(
+            self.equipment_model,
+            self.equipment_vectorizer,
+            text
+        )
+
+        group, group_conf = self._predict_with_confidence(
+            self.failure_group_model,
+            self.failure_group_vectorizer,
+            text
+        )
+
+        # Stage-2 failure
+        if group in self.failure_models:
+            failure, failure_conf = self._predict_with_confidence(
+                self.failure_models[group],
+                self.failure_vectorizers[group],
+                text
+            )
         else:
-            equipment, eq_conf = self._predict_with_confidence(
-                self.equipment_model,
-                self.equipment_vectorizer,
-                clean,
-                EQUIPMENT_THRESHOLD
-            )
+            failure = group
+            failure_conf = group_conf
 
-            failure, fail_conf = self._predict_with_confidence(
-                self.failure_model,
-                self.failure_vectorizer,
-                clean,
-                FAILURE_THRESHOLD
-            )
-
-        serial_number = extract_serial_number(raw_text)
+        serial_number = extract_serial_number(subject, description)
 
         return {
             "equipment": equipment,
             "failure_point": failure,
-            "serial_number": serial_number
+            "serial_number": serial_number,
         }
