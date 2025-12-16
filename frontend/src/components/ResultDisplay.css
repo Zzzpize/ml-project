@@ -1,0 +1,54 @@
+.result-container {
+    margin-top: 40px;
+    padding: 20px;
+    background-color: #1e1e1e;
+    border-radius: 8px;
+    border: 1px solid #333;
+}
+
+.serial-number-badge {
+    background-color: #00c853;
+    color: #000;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    display: inline-block;
+    margin-bottom: 30px;
+}
+
+.graph-area {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    position: relative; 
+    padding: 40px 0;
+}
+
+.node-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.graph-node {
+    padding: 15px 25px;
+    border-radius: 8px;
+    border: 1px solid #555;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.graph-node.inactive {
+    background-color: #333;
+    color: #888;
+    border-color: #444;
+}
+
+.graph-node.active {
+    background-color: #00c853;
+    color: #000;
+    font-weight: bold;
+    border-color: #00e676;
+    transform: scale(1.1);
+}
