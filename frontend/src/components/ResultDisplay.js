@@ -1,6 +1,7 @@
 import React from 'react';
 import './ResultDisplay.css';
 
+// Списки возможных вариантов
 const ALL_EQUIPMENT = ["Ноутбук", "Сервер", "СХД"];
 const ALL_FAILURES = [
     "Аккумулятор", "Блок питания", "Вентилятор", "Динамики", "Диск",
@@ -49,7 +50,13 @@ const ResultDisplay = ({ result }) => {
 
     return (
         <div className="result-container">
-            {serial_number && <div className="serial-number-badge">S/N: {serial_number}</div>}
+            {}
+            {serial_number && (
+                <div className="serial-number-badge">
+                    S/N: {serial_number}
+                </div>
+            )}
+            {}
             
             <div className="graph-area-no-arrow">
                 {}
