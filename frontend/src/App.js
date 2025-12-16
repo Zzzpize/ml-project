@@ -33,7 +33,6 @@ function App() {
 
     try {
       const result = await predictTicket(subject, description);
-
       const formattedResult = {
         equipment: result.equipment,
         failure_point: result.failure_point,
@@ -61,6 +60,8 @@ function App() {
 
         {isLoading && <div className="spinner"></div>}
         {error && <div className="error-message">{error}</div>}
+        
+        {}
         {currentResult && <ResultDisplay result={currentResult} />}
       </main>
     </div>

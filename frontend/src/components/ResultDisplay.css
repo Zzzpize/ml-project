@@ -4,6 +4,9 @@
     background-color: #1e1e1e;
     border-radius: 8px;
     border: 1px solid #333;
+    width: 100%;
+    max-width: 900px;
+    box-sizing: border-box;
 }
 
 .serial-number-badge {
@@ -13,30 +16,52 @@
     border-radius: 20px;
     font-weight: bold;
     display: inline-block;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
 }
 
-.graph-area {
+.graph-area-no-arrow {
     display: flex;
-    justify-content: space-around;
-    align-items: center;
-    position: relative; 
-    padding: 40px 0;
+    justify-content: space-between;
+    gap: 30px;
+}
+
+.column-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.column-title {
+    font-size: 16px;
+    color: #aaa;
+    margin: 0 0 15px 0;
+    text-align: center;
+    font-weight: normal;
+}
+
+.failure-group {
+    flex-grow: 1;
 }
 
 .node-column {
     display: flex;
     flex-direction: column;
+    gap: 15px;
+}
+
+.failure-columns-container {
+    display: flex;
+    justify-content: space-between;
     gap: 20px;
 }
 
 .graph-node {
-    padding: 15px 25px;
+    padding: 12px 20px;
     border-radius: 8px;
     border: 1px solid #555;
-    font-size: 16px;
+    font-size: 14px;
     transition: all 0.3s ease;
     text-align: center;
+    white-space: nowrap;
 }
 
 .graph-node.inactive {
@@ -50,5 +75,19 @@
     color: #000;
     font-weight: bold;
     border-color: #00e676;
-    transform: scale(1.1);
+    transform: scale(1.05);
+}
+
+.undefined-result-message {
+    padding: 20px;
+    background-color: rgba(255, 183, 77, 0.1);
+    border: 1px solid #FFB74D;
+    border-radius: 8px;
+    color: #FFB74D;
+    text-align: center;
+}
+
+.undefined-result-message p {
+    margin: 10px 0 0;
+    color: #e0e0e0;
 }
